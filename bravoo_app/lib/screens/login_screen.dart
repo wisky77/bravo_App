@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_colors.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/social_button.dart';
 import 'forgot_password_screen.dart';
+import 'enter_email.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -31,10 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Decorative header with blurred circles
             _buildHeader(),
-
-            // Main content
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -49,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Drag handle
                       Center(
                         child: Container(
                           width: 120,
@@ -61,8 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-
-                      // Title
                       const Text(
                         'Continue to log in',
                         style: TextStyle(
@@ -72,8 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-
-                      // Subtitle
                       const Text(
                         "Let's get you started.",
                         style: TextStyle(
@@ -83,15 +79,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-
-                      // Email field
                       CustomTextField(
                         hintText: 'Email address',
                         controller: _emailController,
                       ),
                       const SizedBox(height: 16),
-
-                      // Password field
                       CustomTextField(
                         hintText: 'Password',
                         isPassword: !_isPasswordVisible,
@@ -111,15 +103,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Continue button
                       PrimaryButton(
-                        text: 'Continue',
+                        text: _isLoading ? 'Please wait...' : 'Continue',
                         onPressed: _handleLogin,
+                        isLoading: _isLoading,
                       ),
                       const SizedBox(height: 16),
-
-                      // Forgot password link
                       Center(
                         child: TextButton(
                           onPressed: () {
@@ -141,8 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // OR divider
                       Row(
                         children: [
                           Expanded(
@@ -171,8 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
-                      // Google sign in
                       SocialButton(
                         text: 'Continue with Google',
                         icon: Image.asset(
@@ -187,13 +172,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           },
                         ),
-                        onPressed: () {
-                          // TODO: Handle Google sign in
-                        },
+                        onPressed: () {},
                       ),
                       const SizedBox(height: 16),
-
-                      // Apple sign in
                       SocialButton(
                         text: 'Continue with Apple',
                         icon: const Icon(
@@ -201,13 +182,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           size: 24,
                           color: Colors.black,
                         ),
-                        onPressed: () {
-                          // TODO: Handle Apple sign in
-                        },
+                        onPressed: () {},
                       ),
                       const SizedBox(height: 32),
-
-                      // Sign up link
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -220,9 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                // TODO: Navigate to sign up
-                              },
+                              onPressed: () {},
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 minimumSize: const Size(0, 0),
@@ -241,8 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Terms and policy
                       const Center(
                         child: Text(
                           'By continuing you agree to the Rules and Policy',
@@ -270,7 +243,6 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 200,
       child: Stack(
         children: [
-          // Blurred gradient circles
           Positioned(
             left: -50,
             top: -20,
@@ -309,9 +281,33 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() {
-    // TODO: Implement login logic
-    print('Email: ${_emailController.text}');
-    print('Password: ${_passwordController.text}');
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await AuthService().signInWithPassword(email, password);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const EnterEmailScreen()),
+      );
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login failed. Please try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

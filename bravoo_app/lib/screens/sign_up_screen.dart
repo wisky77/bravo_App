@@ -1,22 +1,7 @@
 import 'package:flutter/material.dart';
-
-void main() => runApp(const MyApp());
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Sign Up Mock',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const SignUpScreen(),
-    );
-  }
-}
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'enter_email.dart';
+import '../services/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -29,16 +14,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscure = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      // fake blurred background using an image-ish gradient for demo
       body: Stack(
         children: [
-          // background circles / blurred wallpaper imitation
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -48,7 +32,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
-          // translucent repeated circles to mimic the mock image
           Positioned.fill(
             child: Opacity(
               opacity: 0.35,
@@ -57,8 +40,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
-
-          // main bottom sheet
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -83,7 +64,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // drag handle
                     Center(
                       child: Container(
                         width: 60,
@@ -95,7 +75,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
-
                     const Text(
                       'Continue to sign up',
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
@@ -105,19 +84,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       "Let's get you started.",
                       style: TextStyle(color: Colors.black54),
                     ),
-
                     const SizedBox(height: 18),
-
-                    // email field
                     _buildInputField(
                       controller: _emailController,
                       hint: 'Email address',
                       keyboardType: TextInputType.emailAddress,
                     ),
-
                     const SizedBox(height: 12),
-
-                    // password field
                     _buildInputField(
                       controller: _passwordController,
                       hint: 'Password',
@@ -128,13 +101,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
-                    // Continue button - glossy rounded pill style
                     Center(
                       child: GestureDetector(
-                        onTap: () => _onContinue(),
+                        onTap: _isLoading ? null : _onContinue,
                         child: Container(
                           width: double.infinity,
                           height: 56,
@@ -151,107 +121,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 blurRadius: 12,
                                 offset: Offset(0, 6),
                               ),
-                              // subtle inner shine using a white translucent gradient overlay
                             ],
                           ),
-                          child: Stack(
-                            children: [
-                              // top-left soft highlight
-                              Positioned.fill(
-                                child: Opacity(
-                                  opacity: 0.08,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(28),
-                                      gradient: LinearGradient(
-                                        colors: [Colors.white, Colors.transparent],
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                          child: Center(
+                            child: Text(
+                              _isLoading ? 'Please wait...' : 'Continue',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                               ),
-
-                              Center(
-                                child: Text(
-                                  'Continue',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // OR divider
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text('or', style: TextStyle(color: Colors.black54)),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Social buttons
-                    _socialButton(
-                      label: 'Continue with Google',
-                      leading: _googleIcon(),
-                      highlight: true,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _socialButton(
-                      label: 'Continue with Apple',
-                      leading: const Icon(Icons.apple, size: 20),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Already have an account? '),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Text(
-                            'Log in',
-                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
-                          ),
-                        )
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Center(
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        children: [
-                          const Text('By continuing you agree to the '),
-                          GestureDetector(
-                            onTap: () {},
-                            child: const Text(
-                              'Rules and Policy',
-                              style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue),
                             ),
-                          )
-                        ],
+                          ),
+                        ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -293,81 +176,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _socialButton({required String label, Widget? leading, bool highlight = false}) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        height: 52,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: highlight ? Colors.white : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            if (leading != null) ...[
-              leading,
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _googleIcon() {
-    // simplified google logo (rounded G)
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
-      ),
-      child: Center(
-        child: Stack(
-          children: [
-            Positioned(
-              left: 6,
-              top: 4,
-              child: Container(width: 6, height: 6, color: Colors.blue),
-            ),
-            Positioned(
-              left: 12,
-              top: 4,
-              child: Container(width: 6, height: 6, color: Colors.red),
-            ),
-            Positioned(
-              left: 9,
-              top: 12,
-              child: Container(width: 6, height: 6, color: Colors.green),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onContinue() {
-    // placeholder - in a real app you'd validate and submit
-    final email = _emailController.text;
-    final pass = _passwordController.text;
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Tried to continue with $email — password length ${pass.length}'),
-    ));
+  Future<void> _onContinue() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await AuthService().signUpWithPassword(email, password);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const EnterEmailScreen()),
+      );
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign up failed. Please try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }
 
