@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../widgets/social_button.dart';
 import 'enter_email.dart';
+import 'login_screen.dart';
 import '../services/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -23,6 +26,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: Stack(
         children: [
+          // Background
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -32,6 +36,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
+          // Decorative circles
           Positioned.fill(
             child: Opacity(
               opacity: 0.35,
@@ -40,6 +45,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
+
+          // Bottom sheet content
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -64,6 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Drag handle
                     Center(
                       child: Container(
                         width: 60,
@@ -75,6 +83,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
+
                     const Text(
                       'Continue to sign up',
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
@@ -84,13 +93,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       "Let's get you started.",
                       style: TextStyle(color: Colors.black54),
                     ),
+
                     const SizedBox(height: 18),
+
+                    // Email field
                     _buildInputField(
                       controller: _emailController,
                       hint: 'Email address',
                       keyboardType: TextInputType.emailAddress,
                     ),
+
                     const SizedBox(height: 12),
+
+                    // Password field
                     _buildInputField(
                       controller: _passwordController,
                       hint: 'Password',
@@ -101,7 +116,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
+
                     const SizedBox(height: 18),
+
+                    // Continue button
                     Center(
                       child: GestureDetector(
                         onTap: _isLoading ? null : _onContinue,
@@ -115,7 +133,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                             ),
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Colors.black45,
                                 blurRadius: 12,
@@ -135,6 +153,77 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // OR divider
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text('or', style: TextStyle(color: Colors.black54)),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Social buttons (restored)
+                    SocialButton(
+                      text: 'Continue with Google',
+                      icon: const FaIcon(FontAwesomeIcons.google, color: Colors.redAccent, size: 22),
+                      onPressed: () {
+                        // TODO: Hook up Google auth if needed
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    SocialButton(
+                      text: 'Continue with Apple',
+                      icon: const FaIcon(FontAwesomeIcons.apple, color: Colors.black, size: 22),
+                      onPressed: () {
+                        // TODO: Hook up Apple auth if needed
+                      },
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Already have account (restored)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Already have an account? '),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                          },
+                          child: const Text(
+                            'Log in',
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        children: const [
+                          Text('By continuing you agree to the '),
+                          Text(
+                            'Rules and Policy',
+                            style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     const SizedBox(height: 24),
                   ],
                 ),

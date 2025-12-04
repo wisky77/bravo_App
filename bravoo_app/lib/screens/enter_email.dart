@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 
 class EnterEmailScreen extends StatefulWidget {
   const EnterEmailScreen({super.key});
@@ -22,9 +21,13 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Enter your email'),
         centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
@@ -58,13 +61,33 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
+
+                // Gradient black button with white text
                 SizedBox(
                   height: 56,
-                  child: ElevatedButton(
-                    onPressed: _sending ? null : _sendCode,
-                    child: Text(_sending ? 'Sending…' : 'Send code'),
+                  child: GestureDetector(
+                    onTap: _sending ? null : _onSend,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        gradient: const LinearGradient(
+                          colors: [Colors.black87, Colors.black54],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _sending ? 'Sending…' : 'Send code',
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ),
                 ),
+
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _sending ? null : () => Navigator.pop(context),
@@ -78,25 +101,17 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
     );
   }
 
-  Future<void> _sendCode() async {
+  void _onSend() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final email = _emailController.text.trim();
     setState(() => _sending = true);
-    try {
-      await AuthService().sendOtpEmail(email);
+
+    // Simulate a brief async operation; replace with your actual send logic
+    Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
+      setState(() => _sending = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Verification email sent.')),
+        const SnackBar(content: Text('Code sent (template placeholder)')),
       );
-      // Navigate to Home after successful send, as requested.
-      Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send code: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _sending = false);
-    }
+    });
   }
 }
